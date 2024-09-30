@@ -28,8 +28,7 @@ function draw() {
 
     gl.uniformMatrix4fv(shProgram.iModelViewProjectionMatrix, false, modelViewProjection);
 
-    /* Draw the six faces of a cube, with different colors. */
-    gl.uniform4fv(shProgram.iColor, [1, 1, 0, 1]);
+    gl.uniform4fv(shProgram.iColor, [1, 1, 1, 1]);
 
     surface.draw();
 }
@@ -41,8 +40,8 @@ function initGL() {
 
     shProgram = new ShaderProgram('Lab 1', prog);
     surface = new Model('Surface of Revolution of a Parabola of Arbitrary Position');
-    let surfaceVertices = surface.createSurfaceData(0.8, 1.5, 180);
-    surface.bindBufferData(surfaceVertices);
+    surface.createSurfaceData(0.8, 1.25, 270);
+    surface.bindBufferData();
 
     gl.enable(gl.DEPTH_TEST);
 }
