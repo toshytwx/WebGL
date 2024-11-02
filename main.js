@@ -7,6 +7,10 @@ let gl;                         // The WebGL context
 let surface;                    // A surface model
 let shProgram;                  // A shader program
 let spaceball;                  // A SimpleRotator object that lets the user rotate the view by mouse
+const uSlider = document.getElementById("uGranularity");
+const vSlider = document.getElementById("vGranularity");
+uSlider.addEventListener('input', updateSurface);
+vSlider.addEventListener('input', updateSurface);
 
 function draw() {
     gl.clearColor(0, 0, 0, 1);
@@ -33,12 +37,21 @@ function draw() {
     surface.draw(gl, shProgram);
 }
 
+// Function to update the surface
+function updateSurface() {
+    // Create the surface data with the new granularity values
+    surface.createSurfaceData(0.8, 1.25, 270, uSlider.value, vSlider.value);
+
+    // Regenerate the vertex buffer data
+    surface.bindBufferData(gl, shProgram);
+}
+
 // Initialize the WebGL context
 function initGL() {
     const prog = createProgram(gl, vertexShaderSource, fragmentShaderSource);
     shProgram = new ShaderProgram('Lab 1', prog, gl);
     surface = new Model('Surface of Revolution of a Parabola of Arbitrary Position');
-    surface.createSurfaceData(0.8, 1.25, 270);
+    surface.createSurfaceData(0.8, 1.25, 270, 72, 20);
     surface.bindBufferData(gl);
 
     gl.enable(gl.DEPTH_TEST);

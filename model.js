@@ -4,6 +4,7 @@ class Model {
         this.vertices = [];
         this.uLines = [];
         this.vLines = [];
+        this.indices = [];
     }
 
     bindBufferData(gl, shProgram) {
@@ -11,32 +12,52 @@ class Model {
         this.iVertexBuffer = gl.createBuffer();
         gl.bindBuffer(gl.ARRAY_BUFFER, this.iVertexBuffer);
         gl.bufferData(gl.ARRAY_BUFFER, new Float32Array(this.vertices), gl.STATIC_DRAW);
+
+        this.generateIndices();
+        this.iIndexBuffer = gl.createBuffer();
+        gl.bindBuffer(gl.ELEMENT_ARRAY_BUFFER, this.iIndexBuffer);
+        gl.bufferData(gl.ELEMENT_ARRAY_BUFFER, new Uint16Array(this.indices), gl.STATIC_DRAW);
     }
 
     draw(gl, shProgram) {
         gl.bindBuffer(gl.ARRAY_BUFFER, this.iVertexBuffer);
         gl.vertexAttribPointer(shProgram.iAttribVertex, 3, gl.FLOAT, false, 0, 0);
         gl.enableVertexAttribArray(shProgram.iAttribVertex);
-    
-        const uLineSegments = this.uLines.length;
-        const vLineSegments = this.vLines.length;
-        const pointsInULine = this.uLines[0].length;
-        const uVerticesCount = uLineSegments * pointsInULine;
-    
-        for (let uIndex = 0; uIndex < uLineSegments; uIndex++) {
-            const uOffset = uIndex * pointsInULine;
-            gl.drawArrays(gl.LINE_STRIP, uOffset, pointsInULine);
-        }
-    
-        for (let vIndex = 0; vIndex < vLineSegments; vIndex++) {
-            const vOffset = uVerticesCount + vIndex * uLineSegments;
-            gl.drawArrays(gl.LINE_STRIP, vOffset, uLineSegments);
+
+        // Bind the index buffer
+        gl.bindBuffer(gl.ELEMENT_ARRAY_BUFFER, this.iIndexBuffer);
+
+        // Draw the triangles
+        gl.drawElements(gl.TRIANGLES, this.indices.length, gl.UNSIGNED_SHORT, 0);
+    }
+
+    generateVertices() {
+        return this.uLines.flat(2).concat(this.vLines.flat(2));
+    }
+
+    generateIndices() {
+        this.indices = [];
+        const uSegments = this.uLines.length;
+        const vSegments = this.vLines.length;
+
+        // Loop through the uLines and vLines to create two triangles per rectangle
+        for (let u = 0; u < uSegments - 1; u++) {
+            for (let v = 0; v < vSegments - 1; v++) {
+                const topLeft = u * vSegments + v;
+                const topRight = topLeft + 1;
+                const bottomLeft = (u + 1) * vSegments + v;
+                const bottomRight = bottomLeft + 1;
+
+                // Two triangles per rectangle
+                this.indices.push(topLeft, bottomLeft, topRight);
+                this.indices.push(bottomLeft, bottomRight, topRight);
+            }
         }
     }
 
-    createSurfaceData(a, c, theta) {
-        let numSegments = 72;  // Number of rotation segments (360 degrees / numSegments)
-        let numSteps = 20;     // Number of steps along the parabola (T direction)
+    createSurfaceData(a, c, theta, uGranularity, vGranularity) {
+        let numSegments = uGranularity;  // Number of rotation segments (360 degrees / numSegments)
+        let numSteps = vGranularity;     // Number of steps along the parabola (T direction)
         let maxT = 1.0;        // Maximum value of T (controls height of parabola)
     
         // Convert theta to radians
@@ -64,10 +85,6 @@ class Model {
         }
 
         this.vLines = this.transpose(this.uLines);
-    }
-
-    generateVertices() {
-        return this.uLines.flat(2).concat(this.vLines.flat(2));
     }
 
     transpose(matrix) {
