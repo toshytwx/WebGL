@@ -1,5 +1,5 @@
 class ShaderProgram {
-    constructor(name, program) {
+    constructor(name, program, gl) {
         this.name = name;
         this.prog = program;
 
@@ -10,3 +10,5 @@ class ShaderProgram {
         this.iColor = gl.getUniformLocation(this.prog, "color");
     }
 }
+
+export { ShaderProgram };

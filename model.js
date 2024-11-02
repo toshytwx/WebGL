@@ -6,14 +6,14 @@ class Model {
         this.vLines = [];
     }
 
-    bindBufferData() {
+    bindBufferData(gl, shProgram) {
         this.vertices = this.generateVertices();
         this.iVertexBuffer = gl.createBuffer();
         gl.bindBuffer(gl.ARRAY_BUFFER, this.iVertexBuffer);
         gl.bufferData(gl.ARRAY_BUFFER, new Float32Array(this.vertices), gl.STATIC_DRAW);
     }
 
-    draw() {
+    draw(gl, shProgram) {
         gl.bindBuffer(gl.ARRAY_BUFFER, this.iVertexBuffer);
         gl.vertexAttribPointer(shProgram.iAttribVertex, 3, gl.FLOAT, false, 0, 0);
         gl.enableVertexAttribArray(shProgram.iAttribVertex);
@@ -76,9 +76,10 @@ class Model {
             Array.from({ length: numRows }, (_, row) => matrix[row][col])
         );
     }
-      
 
     deg2rad(angle) {
         return angle * Math.PI / 180;
     }
 }
+
+export { Model };
