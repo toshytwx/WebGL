@@ -1,88 +1,92 @@
 import { Model } from './model.js';
-import { TrackballRotator } from './Utils/trackball-rotator.js'
-import { ShaderProgram } from './shader.js'
+import { TrackballRotator } from './Utils/trackball-rotator.js';
+import { ShaderProgram } from './shader.js';
 
-
-let gl;                         // The WebGL context
-let surface;                    // A surface model
-let shProgram;                  // A shader program
-let spaceball;                  // A SimpleRotator object that lets the user rotate the view by mouse
+let gl;
+let surface;
+let shProgram;
+let spaceball;
 const uSlider = document.getElementById("uGranularity");
 const vSlider = document.getElementById("vGranularity");
+
 uSlider.addEventListener('input', updateSurface);
 vSlider.addEventListener('input', updateSurface);
+
+async function loadShader(gl, url, type) {
+    const response = await fetch(url);
+    const shaderSource = await response.text();
+
+    const shader = gl.createShader(type);
+    gl.shaderSource(shader, shaderSource);
+    gl.compileShader(shader);
+
+    if (!gl.getShaderParameter(shader, gl.COMPILE_STATUS)) {
+        console.error(`An error occurred compiling the shader: ${gl.getShaderInfoLog(shader)}`);
+        gl.deleteShader(shader);
+        return null;
+    }
+    return shader;
+}
+
+async function initShaders() {
+    const vertexShader = await loadShader(gl, './shaders/vertex.glsl', gl.VERTEX_SHADER);
+    const fragmentShader = await loadShader(gl, './shaders/fragment.glsl', gl.FRAGMENT_SHADER);
+
+    const shaderProgram = gl.createProgram();
+    gl.attachShader(shaderProgram, vertexShader);
+    gl.attachShader(shaderProgram, fragmentShader);
+    gl.linkProgram(shaderProgram);
+
+    if (!gl.getProgramParameter(shaderProgram, gl.LINK_STATUS)) {
+        console.error(`Unable to initialize the shader program: ${gl.getProgramInfoLog(shaderProgram)}`);
+        return null;
+    }
+
+    gl.useProgram(shaderProgram);
+    return new ShaderProgram('GouraudShader', shaderProgram, gl);
+}
 
 function draw() {
     gl.clearColor(0, 0, 0, 1);
     gl.clear(gl.COLOR_BUFFER_BIT | gl.DEPTH_BUFFER_BIT);
 
-    // Set the values of the projection transformation
     const projection = m4.perspective(Math.PI / 8, 1, 8, 12);
-
-    // Get the view matrix from the SimpleRotator object
     const modelView = spaceball.getViewMatrix();
-
     const rotateToPointZero = m4.axisRotation([0.707, 0.707, 0], 0.7);
     const translateToPointZero = m4.translation(0, 0, -10);
 
     const matAccum0 = m4.multiply(rotateToPointZero, modelView);
-    const matAccum1 = m4.multiply(translateToPointZero, matAccum0);
+    const modelViewMatrix = m4.multiply(translateToPointZero, matAccum0);
+    const normalMatrix = m4.inverse(m4.transpose(modelViewMatrix));
 
-    // Multiply the projection matrix times the modelview matrix
-    const modelViewProjection = m4.multiply(projection, matAccum1);
-
-    gl.uniformMatrix4fv(shProgram.iModelViewProjectionMatrix, false, modelViewProjection);
-    gl.uniform4fv(shProgram.iColor, [1, 1, 1, 1]);
+    gl.uniformMatrix4fv(shProgram.iProjectionMatrix, false, projection);
+    gl.uniformMatrix4fv(shProgram.iModelViewMatrix, false, modelViewMatrix);
+    gl.uniformMatrix4fv(shProgram.iNormalMatrix, false, normalMatrix);
+    
+    gl.uniform3fv(shProgram.iLightDirection, [1.0, 1.0, 1.0]);
 
     surface.draw(gl, shProgram);
 }
 
-// Function to update the surface
-function updateSurface() {
-    // Create the surface data with the new granularity values
-    surface.createSurfaceData(0.8, 1.25, 270, uSlider.value, vSlider.value);
 
-    // Regenerate the vertex buffer data
+
+function updateSurface() {
+    surface.createSurfaceData(0.8, 1.25, 270, uSlider.value, vSlider.value);
     surface.bindBufferData(gl, shProgram);
 }
 
-// Initialize the WebGL context
-function initGL() {
-    const prog = createProgram(gl, vertexShaderSource, fragmentShaderSource);
-    shProgram = new ShaderProgram('Lab 1', prog, gl);
+async function initGL() {
+    shProgram = await initShaders();
+    if (!shProgram) return;
+
     surface = new Model('Surface of Revolution of a Parabola of Arbitrary Position');
     surface.createSurfaceData(0.8, 1.25, 270, 72, 20);
-    surface.bindBufferData(gl);
+    surface.bindBufferData(gl, shProgram);
 
     gl.enable(gl.DEPTH_TEST);
+    draw();
 }
 
-// Creates a program for use in the WebGL context gl
-function createProgram(gl, vShader, fShader) {
-    const vsh = gl.createShader(gl.VERTEX_SHADER);
-    gl.shaderSource(vsh, vShader);
-    gl.compileShader(vsh);
-    if (!gl.getShaderParameter(vsh, gl.COMPILE_STATUS)) {
-        throw new Error("Error in vertex shader:  " + gl.getShaderInfoLog(vsh));
-    }
-
-    const fsh = gl.createShader(gl.FRAGMENT_SHADER);
-    gl.shaderSource(fsh, fShader);
-    gl.compileShader(fsh);
-    if (!gl.getShaderParameter(fsh, gl.COMPILE_STATUS)) {
-        throw new Error("Error in fragment shader:  " + gl.getShaderInfoLog(fsh));
-    }
-
-    const prog = gl.createProgram();
-    gl.attachShader(prog, vsh);
-    gl.attachShader(prog, fsh);
-    gl.linkProgram(prog);
-    if (!gl.getProgramParameter(prog, gl.LINK_STATUS)) {
-        throw new Error("Link error in program:  " + gl.getProgramInfoLog(prog));
-    }
-
-    return prog;
-}
 
 function init() {
     let canvas;
@@ -99,7 +103,7 @@ function init() {
     }
 
     try {
-        initGL();  // Initialize the WebGL graphics context
+        initGL();
     } catch (e) {
         document.getElementById("canvas-holder").innerHTML =
             "<p>Sorry, could not initialize the WebGL graphics context: " + e + "</p>";
@@ -107,8 +111,6 @@ function init() {
     }
 
     spaceball = new TrackballRotator(canvas, draw, 0);
-    draw();
 }
 
-// Call the init function to start everything
 init();

@@ -4,15 +4,15 @@ attribute vec3 aNormal;
 uniform mat4 uModelViewMatrix;
 uniform mat4 uProjectionMatrix;
 uniform mat4 uNormalMatrix;
-uniform vec3 uLightDirection; // Directional light source
+uniform vec3 uLightDirection;
 
 varying vec3 vColor;
 
 void main() {
-    vec3 normal = normalize((uNormalMatrix * vec4(aNormal, 0.0)).xyz);
-    float lightIntensity = max(dot(normal, normalize(uLightDirection)), 0.0);
-
-    vColor = vec3(1.0, 0.6, 0.3) * lightIntensity; // Modify color as needed
+    vec3 transformedNormal = normalize((uNormalMatrix * vec4(aNormal, 0.0)).xyz);
+    
+    float lightIntensity = max(dot(transformedNormal, normalize(uLightDirection)), 0.0);
+    vColor = vec3(1.0, 0.6, 0.3) * lightIntensity;
 
     gl_Position = uProjectionMatrix * uModelViewMatrix * vec4(aPosition, 1.0);
 }
