@@ -12,6 +12,11 @@ class ShaderProgram {
         this.iNormalMatrix = gl.getUniformLocation(this.prog, "uNormalMatrix");
         this.iLightDirection = gl.getUniformLocation(this.prog, "uLightDirection");
         this.iColor = gl.getUniformLocation(this.prog, "color");
+        this.iViewPosition = gl.getUniformLocation(this.prog, "uViewPosition");
+        this.iAmbientColor = gl.getUniformLocation(this.prog, "uAmbientColor");
+        this.iDiffuseColor = gl.getUniformLocation(this.prog, "uDiffuseColor");
+        this.iSpecularColor = gl.getUniformLocation(this.prog, "uSpecularColor");
+        this.iShininess = gl.getUniformLocation(this.prog, "uShininess");
     }
 }
 export { ShaderProgram };

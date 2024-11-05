@@ -63,16 +63,21 @@ function draw() {
     gl.uniformMatrix4fv(shProgram.iModelViewMatrix, false, modelViewMatrix);
     gl.uniformMatrix4fv(shProgram.iNormalMatrix, false, normalMatrix);
     
-    gl.uniform3fv(shProgram.iLightDirection, [1.0, 1.0, 1.0]);
-
+    gl.uniform3fv(shProgram.iLightPosition, [1.0, 1.0, 1.0]);
+    gl.uniform3f(shProgram.iViewPosition, 0.0, 0.0, 5.0);
+    gl.uniform3f(shProgram.iAmbientColor, 0.2, 0.2, 0.2);
+    gl.uniform3f(shProgram.iDiffuseColor, 0.6, 0.6, 0.6);
+    gl.uniform3f(shProgram.iSpecularColor, 1.0, 1.0, 1.0);
+    gl.uniform1f(shProgram.iShininess, 32.0);
     surface.draw(gl, shProgram);
 }
 
 
-
 function updateSurface() {
+    surface = new Model('Surface of Revolution of a Parabola of Arbitrary Position');
     surface.createSurfaceData(0.8, 1.25, 270, uSlider.value, vSlider.value);
     surface.bindBufferData(gl, shProgram);
+    draw();
 }
 
 async function initGL() {
@@ -104,6 +109,7 @@ function init() {
 
     try {
         initGL();
+        requestAnimationFrame(animateLight);
     } catch (e) {
         document.getElementById("canvas-holder").innerHTML =
             "<p>Sorry, could not initialize the WebGL graphics context: " + e + "</p>";
@@ -113,4 +119,17 @@ function init() {
     spaceball = new TrackballRotator(canvas, draw, 0);
 }
 
+function animateLight(time) {
+    const radius = 10.0;
+    const speed = 0.001;
+    const x = radius * Math.cos(time * speed);
+    const z = radius * Math.sin(time * speed);
+    const y = 5.0;
+
+    if (shProgram) {
+        gl.uniform3f(shProgram.iLightDirection, x, y, z);
+        surface.draw(gl, shProgram);
+    }
+    requestAnimationFrame(animateLight);
+}
 init();
