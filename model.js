@@ -117,7 +117,6 @@ class Model {
                 const tangentV = [xV - x, yV - y, zV - z];
     
                 const normal = this.normalize(this.crossProduct(tangentU, tangentV));
-                // const normal = [1, 1, 1]
                 normals.push(...normal);
             }
         }
