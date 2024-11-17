@@ -85,13 +85,14 @@ async function initGL() {
     if (!shProgram) return;
 
     surface = new Model('Surface of Revolution of a Parabola of Arbitrary Position');
+
     surface.createSurfaceData(0.8, 1.25, 270, 72, 20);
     surface.bindBufferData(gl, shProgram);
+    surface.bindTextures(gl, shProgram);
 
     gl.enable(gl.DEPTH_TEST);
     draw();
 }
-
 
 function init() {
     let canvas;
@@ -128,8 +129,11 @@ function animateLight(time) {
 
     if (shProgram) {
         gl.uniform3f(shProgram.iLightDirection, x, y, z);
-        surface.draw(gl, shProgram);
+        if (surface) {
+            surface.draw(gl, shProgram);
+        }
     }
     requestAnimationFrame(animateLight);
 }
+
 init();
