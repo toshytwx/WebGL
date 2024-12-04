@@ -6,11 +6,34 @@ let gl;
 let surface;
 let shProgram;
 let spaceball;
+let pointU = 0.5;
+let pointV = 0.5;
+const stepSize = 0.05;
 const uSlider = document.getElementById("uGranularity");
 const vSlider = document.getElementById("vGranularity");
+const scaleSlider = document.getElementById("scaleSlider");
 
 uSlider.addEventListener('input', updateSurface);
 vSlider.addEventListener('input', updateSurface);
+scaleSlider.addEventListener('input', updatePointPosition);
+
+window.addEventListener("keydown", (event) => {
+    switch (event.key) {
+        case "a": 
+            pointU = Math.max(0, pointU - stepSize);
+            break;
+        case "d": 
+            pointU = Math.min(1, pointU + stepSize);
+            break;
+        case "w": 
+            pointV = Math.min(1, pointV + stepSize);
+            break;
+        case "s": 
+            pointV = Math.max(0, pointV - stepSize);
+            break;
+    }
+    updatePointPosition(); 
+});
 
 async function loadShader(gl, url, type) {
     const response = await fetch(url);
@@ -78,6 +101,22 @@ function updateSurface() {
     surface.createSurfaceData(0.8, 1.25, 270, uSlider.value, vSlider.value);
     surface.bindBufferData(gl, shProgram);
     draw();
+}
+
+
+function updatePointPosition() {
+    if (surface) {
+        const uIndex = Math.floor(pointU * (surface.uLines.length - 1));
+        const vIndex = Math.floor(pointV * (surface.uLines[0].length - 1));
+
+        const pointPosition = surface.uLines[uIndex][vIndex]; 
+        const scaleFactor = scaleSlider.value;
+        
+        if (shProgram) {
+            gl.uniform3fv(shProgram.uPointPositionLoc, pointPosition);
+            gl.uniform1f(shProgram.uScaleFactorLoc, scaleFactor);
+        }
+    }
 }
 
 async function initGL() {

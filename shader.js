@@ -17,11 +17,13 @@ class ShaderProgram {
         this.iDiffuseColor = gl.getUniformLocation(this.prog, "uDiffuseColor");
         this.iSpecularColor = gl.getUniformLocation(this.prog, "uSpecularColor");
         this.iShininess = gl.getUniformLocation(this.prog, "uShininess");
-        this.uDiffuseTexture = gl.getUniformLocation(program, "uDiffuseTexture");
-        this.uSpecularTexture = gl.getUniformLocation(program, "uSpecularTexture");
-        this.uNormalTexture = gl.getUniformLocation(program, "uNormalTexture");
-        this.aTexCoord = gl.getAttribLocation(program, "aTexCoord");
+        this.uDiffuseTexture = gl.getUniformLocation(this.prog, "uDiffuseTexture");
+        this.uSpecularTexture = gl.getUniformLocation(this.prog, "uSpecularTexture");
+        this.uNormalTexture = gl.getUniformLocation(this.prog, "uNormalTexture");
+        this.aTexCoord = gl.getAttribLocation(this.prog, "aTexCoord");
         this.aTangent = gl.getAttribLocation(this.prog, "aTangent");
+        this.uPointPositionLoc = gl.getUniformLocation(this.prog, 'uPointPosition');
+        this.uScaleFactorLoc = gl.getUniformLocation(this.prog, 'uScaleFactor');
     }
 }
 export { ShaderProgram };

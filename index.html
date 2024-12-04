@@ -3,7 +3,7 @@
 
 <head>
     <meta http-equiv="Content-Type" content="text/html; charset=UTF-8">
-    <title>PA#3</title>
+    <title>CGW</title>
     <style>
         body {
             background-color: #EEEEEE;
@@ -28,6 +28,10 @@
     <div>
         <label for="vGranularity">V Granularity:</label>
         <input type="range" id="vGranularity" min="2" max="100" value="20">
+    </div>
+    <div>
+        <label for="scaleSlider">Texture Scale:</label>
+        <input id="scaleSlider" type="range" min="0.1" max="5.0" step="0.1" value="1.0">
     </div>
     <div id="canvas-holder">
         <canvas width="600" height="600" id="webglcanvas" style="background-color:black"></canvas>

@@ -14,6 +14,9 @@ uniform vec3 uDiffuseColor;
 uniform vec3 uSpecularColor;
 uniform float uShininess;
 
+uniform vec3 uPointPosition; 
+uniform float uScaleFactor;
+
 varying vec3 vColor;
 varying vec2 vTexCoord;
 varying vec3 vTangent;
@@ -46,7 +49,9 @@ void main() {
     vec3 specular = uSpecularColor * spec;
 
     vColor = (ambient + diffuse + specular);
-    vTexCoord = aTexCoord;
+    
+    float distance = length(aPosition - uPointPosition);
+    vTexCoord = aTexCoord * (1.0 + uScaleFactor * distance);
 
     gl_Position = uProjectionMatrix * uModelViewMatrix * vec4(aPosition, 1.0);
 }
